@@ -1,4 +1,4 @@
 .env.local
 .env
 node_modules
-public/draws.json
+# draws.json은 GitHub Actions가 자동 업데이트 — git 포함
