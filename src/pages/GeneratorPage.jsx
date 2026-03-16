@@ -1,30 +1,7 @@
 import { useState } from 'react'
 import { generateNumbers, generateWeeklyReport } from '../lib/analysis'
 import { savePurchase } from '../lib/supabase'
-
-const BALL_COLORS = ['#E8B800','#1255A8','#C01A1A','#374151','#166534']
-function ballColor(n) {
-  if (n <= 10) return BALL_COLORS[0]
-  if (n <= 20) return BALL_COLORS[1]
-  if (n <= 30) return BALL_COLORS[2]
-  if (n <= 40) return BALL_COLORS[3]
-  return BALL_COLORS[4]
-}
-
-function LottoBall({ number, size = 40 }) {
-  const col = ballColor(number)
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: '50%',
-      background: col, display: 'flex', alignItems: 'center',
-      justifyContent: 'center', color: '#fff', fontWeight: 700,
-      fontSize: size * 0.32, boxShadow: `0 2px 8px ${col}66`,
-      flexShrink: 0
-    }}>
-      {number}
-    </div>
-  )
-}
+import LottoBall from '../components/LottoBall'
 
 export default function GeneratorPage({ draws }) {
   const [periodMonths, setPeriodMonths] = useState(3)
@@ -61,8 +38,7 @@ export default function GeneratorPage({ draws }) {
         generated_set_id: null
       })
       setSavedGames(p => ({ ...p, [idx]: true }))
-    } catch (e) {
-      // Supabase 미연결 시 로컬스토리지 폴백
+    } catch {
       const key = 'lm_purchases'
       const existing = JSON.parse(localStorage.getItem(key) || '[]')
       existing.push({
@@ -87,7 +63,7 @@ export default function GeneratorPage({ draws }) {
         <div className="briefing-grid">
           <div className="briefing-item">
             <span className="bi-label">갭 패턴 적중률</span>
-            <span className="bi-value" style={{color: report.gap1Rate > 65 ? '#10b981' : '#f59e0b'}}>
+            <span className="bi-value" style={{color: report.gap1Rate > 65 ? 'var(--green)' : 'var(--gold)'}}>
               {report.gap1Rate}%
             </span>
           </div>
@@ -101,17 +77,17 @@ export default function GeneratorPage({ draws }) {
           </div>
           <div className="briefing-item">
             <span className="bi-label">갭 후보 번호</span>
-            <span className="bi-value">{report.gap1Candidates.slice(0,6).join(', ')}</span>
+            <span className="bi-value" style={{fontSize:14}}>{report.gap1Candidates.slice(0,6).join(', ')}</span>
           </div>
         </div>
         <div className="last-draw-row">
-          <span className="bi-label">지난 회차 ({lastDraw.draw_no}):</span>
+          <span className="bi-label" style={{flexShrink:0}}>지난 회차 ({lastDraw.draw_no})</span>
           <div className="ball-row">
             {[lastDraw.n1,lastDraw.n2,lastDraw.n3,lastDraw.n4,lastDraw.n5,lastDraw.n6].map(n =>
               <LottoBall key={n} number={n} size={32} />
             )}
-            <span style={{color:'#94a3b8',margin:'0 4px'}}>+</span>
-            <LottoBall number={lastDraw.bonus} size={32} />
+            <span style={{color:'var(--text3)',fontSize:13}}>+</span>
+            <LottoBall number={lastDraw.bonus} size={32} bonus />
           </div>
         </div>
       </div>
@@ -148,13 +124,13 @@ export default function GeneratorPage({ draws }) {
             <label>적용 패턴</label>
             <div className="toggle-group">
               {[
-                {key:'gap', label:'갭 패턴', val:useGap, set:setUseGap},
-                {key:'sec', label:'구간 사이클', val:useSection, set:setUseSection},
-                {key:'pair', label:'동반 출현', val:usePairs, set:setUsePairs},
-                {key:'sum', label:'합계 밴드', val:useSumBand, set:setUseSumBand},
+                {key:'gap',  label:'갭 패턴',    val:useGap,      set:setUseGap},
+                {key:'sec',  label:'구간 사이클', val:useSection,  set:setUseSection},
+                {key:'pair', label:'동반 출현',   val:usePairs,    set:setUsePairs},
+                {key:'sum',  label:'합계 밴드',   val:useSumBand,  set:setUseSumBand},
               ].map(({key,label,val,set}) => (
                 <button key={key} className={`toggle-btn ${val?'on':''}`} onClick={()=>set(!val)}>
-                  {val ? '✓' : ''} {label}
+                  {val ? '✓ ' : ''}{label}
                 </button>
               ))}
             </div>
@@ -177,7 +153,7 @@ export default function GeneratorPage({ draws }) {
               <div key={idx} className="game-row">
                 <span className="game-no">#{idx+1}</span>
                 <div className="ball-row">
-                  {game.numbers.map(n => <LottoBall key={n} number={n} size={38} />)}
+                  {game.numbers.map(n => <LottoBall key={n} number={n} size={36} />)}
                 </div>
                 <div className="game-meta">
                   <div className="score-bar">
@@ -196,30 +172,29 @@ export default function GeneratorPage({ draws }) {
             ))}
           </div>
 
-          {/* 분석 근거 */}
           {result.analysis && (
             <div className="reason-box">
               <div className="reason-title">이 번호들의 근거</div>
               <div className="reason-list">
                 <div className="reason-item">
-                  <span className="ri-dot" style={{background:'#10b981'}} />
+                  <span className="ri-dot" style={{background:'var(--green)'}} />
                   갭+1 패턴 적중률 {result.analysis.gap1.rate}%
                   {result.analysis.gap1.rate > 65 ? ' ← 현재 강한 패턴' : ''}
                 </div>
                 {result.analysis.sections.filter(s=>s.status==='rising').map(s => (
                   <div key={s.section} className="reason-item">
-                    <span className="ri-dot" style={{background:'#f59e0b'}} />
+                    <span className="ri-dot" style={{background:'var(--gold)'}} />
                     {s.section} 구간 상승 사이클 (최근 대비 +{s.trend}%p)
                   </div>
                 ))}
                 <div className="reason-item">
-                  <span className="ri-dot" style={{background:'#3b82f6'}} />
+                  <span className="ri-dot" style={{background:'var(--blue)'}} />
                   합계 타깃 {result.analysis.sumBand.targetMin}~{result.analysis.sumBand.targetMax}
                   (최근 평균 {result.analysis.sumBand.recentAvg})
                 </div>
                 {result.analysis.pairs[0] && (
                   <div className="reason-item">
-                    <span className="ri-dot" style={{background:'#8b5cf6'}} />
+                    <span className="ri-dot" style={{background:'var(--purple)'}} />
                     동반 출현 최강 쌍: {result.analysis.pairs[0].a}·{result.analysis.pairs[0].b}
                     ({result.analysis.pairs[0].rate}%)
                   </div>

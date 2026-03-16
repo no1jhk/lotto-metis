@@ -1,7 +1,7 @@
 // DashboardPage.jsx
 import { useMemo } from 'react'
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
-import { analyzeSectionCycle, analyzeGapPattern } from '../lib/analysis'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { analyzeSectionCycle } from '../lib/analysis'
 
 const BALL_COLORS = ['#E8B800','#1255A8','#C01A1A','#374151','#166534']
 function ballColor(n) {
@@ -12,7 +12,7 @@ function ballColor(n) {
   return BALL_COLORS[4]
 }
 
-export function DashboardPage({ draws }) {
+function DashboardPage({ draws }) {
   const purchases = JSON.parse(localStorage.getItem('lm_purchases') || '[]')
 
   // 번호별 출현 빈도 (전체)
@@ -50,8 +50,8 @@ export function DashboardPage({ draws }) {
       return Math.round(list.filter(p => p.rank).length / list.length * 1000) / 10
     }
     return [
-      { name: '앱 생성', total: app.length, rate: winRate(app), color: '#10b981' },
-      { name: '수동 입력', total: manual.length, rate: winRate(manual), color: '#3b82f6' },
+      { name: '앱 생성', total: app.length, rate: winRate(app), color: '#10b981', src: 'app' },
+      { name: '수동 입력', total: manual.length, rate: winRate(manual), color: '#3b82f6', src: 'manual' },
     ]
   }, [purchases])
 
@@ -133,21 +133,20 @@ export function DashboardPage({ draws }) {
           </div>
           <table className="stats-table">
             <thead>
-              <tr><th>구분</th><th>게임수</th><th>5등</th><th>4등 이상</th><th>당첨률</th></tr>
+              <tr><th>구분</th><th>게임수</th><th>5등</th><th>당첨률</th></tr>
             </thead>
             <tbody>
               {stratStats.map(s => (
                 <tr key={s.name}>
                   <td><span style={{color:s.color,fontWeight:600}}>{s.name}</span></td>
                   <td>{s.total}</td>
-                  <td>{purchases.filter(p=>p.source===s.name.includes('앱')?'app':'manual'&&p.rank===5).length}</td>
-                  <td>-</td>
+                  <td>{purchases.filter(p=>p.source===s.src&&p.rank===5).length}</td>
                   <td style={{color:s.rate>7?'#10b981':'#f59e0b',fontWeight:700}}>{s.rate}%</td>
                 </tr>
               ))}
               <tr style={{borderTop:'1px solid #374151',fontStyle:'italic',color:'#6b7280'}}>
                 <td>자동번호 (대조군)</td>
-                <td>-</td><td>-</td><td>-</td>
+                <td>-</td><td>-</td>
                 <td>~5.8%</td>
               </tr>
             </tbody>
