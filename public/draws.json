@@ -16170,5 +16170,18 @@
     "bonus": 25,
     "prize_1st": 0,
     "winners_1st": 0
+  },
+  {
+    "draw_no": 1245,
+    "date": "",
+    "n1": 4,
+    "n2": 5,
+    "n3": 25,
+    "n4": 28,
+    "n5": 32,
+    "n6": 42,
+    "bonus": 12,
+    "prize_1st": 0,
+    "winners_1st": 0
   }
 ]
